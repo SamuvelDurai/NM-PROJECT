@@ -81,18 +81,24 @@ plt.title("ROC Curve")
 plt.legend()
 st.pyplot(plt.gcf())
 
-# Live prediction
 if show_live_prediction:
     st.subheader("🔍 Live Fraud Prediction")
 
+    expected_features = X.columns.tolist()  # Safe: get feature names from your trained model
+    input_values = []
+
     with st.form("prediction_form"):
-        v_features = [st.number_input(f"V{i}", value=0.0) for i in range(1, 29)]
-        amount_scaled = st.number_input("Amount_scaled", value=0.0)
-        time_scaled = st.number_input("Time_scaled", value=0.0)
+        st.markdown("Enter values for each feature:")
+        for feature in expected_features:
+            val = st.number_input(f"{feature}", value=0.0, step=0.01)
+            input_values.append(val)
+
         submitted = st.form_submit_button("Predict")
 
         if submitted:
-            input_data = pd.DataFrame([v_features + [amount_scaled, time_scaled]], columns=X.columns)
-            prediction = model.predict(input_data)[0]
-            st.success(f"🧾 Prediction: {'Fraud' if prediction == 1 else 'Not Fraud'}")
-
+            if len(input_values) != len(expected_features):
+                st.error(f"❌ Expected {len(expected_features)} features but got {len(input_values)}.")
+            else:
+                input_df = pd.DataFrame([input_values], columns=expected_features)
+                prediction = model.predict(input_df)[0]
+                st.success(f"🧾 Prediction: {'Fraud' if prediction == 1 else 'Not Fraud'}")
